@@ -1,27 +1,24 @@
-require("dotenv").config();
-
 const express = require("express");
 const bodyParser = require("body-parser");
 const { Client } = require("@line/bot-sdk");
 
 const app = express();
 
-// 先確認環境變數是否有讀到
 console.log("CHANNEL_ACCESS_TOKEN:", process.env.CHANNEL_ACCESS_TOKEN ? "有讀到" : "未讀到");
 console.log("CHANNEL_SECRET:", process.env.CHANNEL_SECRET ? "有讀到" : "未讀到");
 
 if (!process.env.CHANNEL_ACCESS_TOKEN || !process.env.CHANNEL_SECRET) {
   console.error("環境變數缺失！請確認 Render 上 CHANNEL_ACCESS_TOKEN 和 CHANNEL_SECRET 已設定，且不要加引號。");
-  process.exit(1); // 停止程式，避免 client 未定義
+  process.exit(1);
 }
 
-// LINE Bot 設定
 const config = {
   channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN,
   channelSecret: process.env.CHANNEL_SECRET,
 };
 
 const client = new Client(config);
+
 
 app.use(bodyParser.json());
 
