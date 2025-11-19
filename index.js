@@ -1,60 +1,42 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const { Client } = require("@line/bot-sdk");
+import express from "express";
+import dotenv from "dotenv";
+import { Client, middleware } from "@line/bot-sdk";
 
-const app = express();
-
-console.log("CHANNEL_ACCESS_TOKEN:", process.env.CHANNEL_ACCESS_TOKEN ? "有讀到" : "未讀到");
-console.log("CHANNEL_SECRET:", process.env.CHANNEL_SECRET ? "有讀到" : "未讀到");
-
-if (!process.env.CHANNEL_ACCESS_TOKEN || !process.env.CHANNEL_SECRET) {
-  console.error("環境變數缺失！請確認 Render 上 CHANNEL_ACCESS_TOKEN 和 CHANNEL_SECRET 已設定，且不要加引號。");
-  process.exit(1);
-}
+dotenv.config();
 
 const config = {
   channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN,
   channelSecret: process.env.CHANNEL_SECRET,
 };
 
+console.log("Loaded config:", config);
+
+const app = express();
+
+// ★ 正式建立 client（關鍵）
 const client = new Client(config);
 
+app.post("/webhook", middleware(config), (req, res) => {
+  console.log("收到事件:", req.body);
 
-app.use(bodyParser.json());
+  Promise.all(req.body.events.map(async (event) => {
+    if (event.type === "message" && event.message.type === "text") {
+      console.log("使用者傳來：", event.message.text);
 
-// 測試首頁
-app.get("/", (req, res) => {
-  res.send("LINE Bot is running!");
-});
-
-// Webhook endpoint
-app.post("/webhook", (req, res) => {
-  const events = req.body.events || [];
-
-  // 印出收到的完整事件，用來 debug
-  console.log("收到事件:", JSON.stringify(events, null, 2));
-
-  Promise.all(
-    events.map((event) => {
-      if (event.type === "message" && event.message.type === "text") {
-        console.log("收到文字訊息:", event.message.text);
-        return client.replyMessage(event.replyToken, {
-          type: "text",
-          text: `你剛剛說：${event.message.text}`,
-        });
-      } else {
-        console.log("收到其他事件:", event.type);
-      }
-    })
-  )
-    .then(() => res.sendStatus(200))
+      return client.replyMessage(event.replyToken, {
+        type: "text",
+        text: `你說：${event.message.text}`,
+      });
+    }
+  }))
+    .then(() => res.status(200).end())
     .catch((err) => {
-      console.error("回覆訊息失敗:", err);
-      res.sendStatus(500);
+      console.error("處理事件時出錯：", err);
+      res.status(500).end();
     });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
