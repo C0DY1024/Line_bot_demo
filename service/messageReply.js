@@ -1,4 +1,6 @@
-function handleUserMessage(text) {
+// service/messageReply.js
+
+export function handleUserMessage(text) {
   text = text.trim();
 
   if (text === "你好") {
@@ -9,8 +11,5 @@ function handleUserMessage(text) {
     return "天氣？你自己看窗外比較準。";
   }
 
-  // 預設回應
   return `你說：${text}`;
 }
-
-module.exports = { handleUserMessage };
