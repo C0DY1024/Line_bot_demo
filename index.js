@@ -3,8 +3,8 @@ import { middleware, Client } from "@line/bot-sdk";
 import { handleMessage } from "./service/messageReply.js";
 
 const config = {
-  channelAccessToken: process.env.LINE_ACCESS_TOKEN,
-  channelSecret: process.env.LINE_CHANNEL_SECRET,
+  channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN,
+  channelSecret: process.env.CHANNEL_SECRET,
 };
 
 const app = express();
