@@ -1,15 +1,30 @@
-// service/messageReply.js
+import { createCanvas, registerFont } from "canvas";
+import path from "path";
+import { fileURLToPath } from "url";
 
-export function handleUserMessage(text) {
-  text = text.trim();
+// 讓 ESM 取得 __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-  if (text === "你好") {
-    return "你也你好";
-  }
+// 載入 Unown 字體（你上傳的那個）
+registerFont(path.join(__dirname, "../fonts/Unown.ttf"), {
+  family: "UnownFont",
+});
 
-  if (text.includes("天氣")) {
-    return "天氣？你自己看窗外比較準。";
-  }
+export async function handleMessage(text) {
+  const width = 800;
+  const height = 200;
 
-  return `你說：${text}`;
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(0, 0, width, height);
+
+  ctx.font = "72px UnownFont";
+  ctx.fillStyle = "#000000";
+  ctx.fillText(text, 50, 120);
+
+  // 回傳 PNG buffer
+  return canvas.toBuffer("image/png");
 }

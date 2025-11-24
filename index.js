@@ -1,34 +1,38 @@
 import express from "express";
-import * as line from "@line/bot-sdk";
-import { handleUserMessage } from "./service/messageReply.js";
+import { middleware, Client } from "@line/bot-sdk";
+import { handleMessage } from "./services/messageHandler.js";
 
-const app = express();
-
-// LINE 設定
 const config = {
-  channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN,
-  channelSecret: process.env.CHANNEL_SECRET,
+  channelAccessToken: process.env.LINE_ACCESS_TOKEN,
+  channelSecret: process.env.LINE_CHANNEL_SECRET,
 };
 
-app.post("/webhook", line.middleware(config), async (req, res) => {
+const app = express();
+const client = new Client(config);
+
+app.post("/webhook", middleware(config), async (req, res) => {
   const events = req.body.events;
 
-  const client = new line.Client(config);
+  await Promise.all(
+    events.map(async (event) => {
+      if (event.type === "message" && event.message.type === "text") {
+        const buffer = await handleMessage(event.message.text);
 
-  const results = events.map(async (event) => {
-    if (event.type === "message" && event.message.type === "text") {
-      const userText = event.message.text;
-      const replyText = handleUserMessage(userText);
+        const base64 = buffer.toString("base64");
+        const dataUrl = `data:image/png;base64,${base64}`;
 
-      return client.replyMessage(event.replyToken, {
-        type: "text",
-        text: replyText,
-      });
-    }
-  });
+        return client.replyMessage(event.replyToken, {
+          type: "image",
+          originalContentUrl: dataUrl,
+          previewImageUrl: dataUrl,
+        });
+      }
+    })
+  );
 
-  await Promise.all(results);
   res.status(200).end();
 });
 
-app.listen(3000, () => console.log("Bot running"));
+app.listen(3000, () => {
+  console.log("BOT running on 3000");
+});
