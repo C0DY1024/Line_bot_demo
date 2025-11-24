@@ -1,6 +1,6 @@
 import express from "express";
 import { middleware, Client } from "@line/bot-sdk";
-import { handleMessage } from "./services/messageHandler.js";
+import { handleMessage } from "./service/messageReply.js";
 
 const config = {
   channelAccessToken: process.env.LINE_ACCESS_TOKEN,
